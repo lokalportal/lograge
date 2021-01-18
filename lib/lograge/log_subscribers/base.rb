@@ -20,7 +20,13 @@ module Lograge
         data = extract_request(event, payload)
         data = before_format(data, payload)
         formatted_message = Lograge.formatter.call(data)
-        logger.send(Lograge.log_level, formatted_message)
+
+        log_level = exception?(payload) ? :error : Lograge.log_level
+        logger.send(log_level, formatted_message)
+      end
+
+      def exception?(payload)
+        extract_status(payload).key?(:error)
       end
 
       def extract_request(event, payload)
