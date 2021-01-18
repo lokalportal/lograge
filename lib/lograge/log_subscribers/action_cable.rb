@@ -1,8 +1,20 @@
 module Lograge
   module LogSubscribers
     class ActionCable < Base
-      %i(perform_action subscribe unsubscribe connect disconnect).each do |method_name|
+      ACTIONS = [
+        :transmit_subscription_confirmation,
+        :transmit_subscription_rejection,
+        :perform_action,
+        :subscribe,
+        :unsubscribe,
+        :connect,
+        :disconnect,
+        :message
+      ]
+
+      ACTIONS.each do |method_name|
         define_method(method_name) do |event|
+          event.payload[:action] ||= method_name.to_s
           process_main_event(event)
         end
       end
@@ -14,7 +26,8 @@ module Lograge
           method: {},
           path: {},
           format: {},
-          params: payload[:data],
+          params: payload[:params],
+          data: payload[:data],
           controller: payload[:channel_class] || payload[:connection_class],
           action: payload[:action]
         }
